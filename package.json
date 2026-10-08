@@ -1,0 +1,12 @@
+{
+  "name": "sonar-scan-skill",
+  "private": true,
+  "description": "Local deps for the sonar-scan Claude Code skill (SonarJS rules via ESLint)",
+  "dependencies": {
+    "@typescript-eslint/parser": "^8.19.1",
+    "eslint": "^10.0.0",
+    "eslint-plugin-sonarjs": "^4.2.2",
+    "minimatch": "^10.2.6",
+    "typescript": "~5.9.3"
+  }
+}
