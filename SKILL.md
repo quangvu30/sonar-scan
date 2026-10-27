@@ -14,7 +14,7 @@ Two modes, both run from the project directory (git root = project root):
 
 | Condition | How it is computed locally |
 |---|---|
-| New issues `= 0` | SonarJS rules, only issues on new lines. `TODO` rule uses server behavior: every TODO is flagged, even `TODO(ABC-123)` (plugin v4 ignores those). |
+| New issues `= 0` | SonarJS rules, only issues on new lines. Plus server-only rules in `lib/server-rules.cjs`: `TODO` (S1135) flags every TODO, even `TODO(ABC-123)` (plugin v4 ignores those); `prefer-node-protocol` (S7772) flags Node built-ins imported without the `node:` prefix (`import ... from 'crypto'`, `require('fs')`, `import('zlib')`, `export ... from 'os'`) — missed by the plugin, found on server in auth-service-fo PR 390. |
 | Coverage on new code `≥ 75%` | Runs the project's own jest (`--coverage --runInBand`, project's `collectCoverageFrom` kept, output to a temp dir). Sonar formula `(covered lines + covered conditions) / (lines to cover + conditions)` on new lines. Files **not in lcov** (e.g. outside `collectCoverageFrom`) count as fully uncovered on their SonarJS "executable lines" — this is what makes server coverage lower than jest's own report. Test files are excluded (`**/*.spec.*`, `**/*.test.*`, `**/*.e2e-spec.ts`). |
 | Duplicated lines on new code `≤ 5%` | Sonar-like CPD over all source files: tokens with string literals → `LITERAL`, imports skipped, 10-line blocks, clones ≥ 100 tokens. `% = duplicated new lines / new lines`; spec files are part of sources and count. |
 
@@ -62,6 +62,10 @@ Exit codes: `0` clean / gate passed, `1` issues found / gate failed, `2` usage o
    - Coverage: add tests for uncovered new lines, or — if a file is tested but outside `collectCoverageFrom` — say so and ask before changing the project's jest config (that changes CI behavior).
    - Duplication: extract shared test fixtures/helpers rather than suppressing.
 5. After fixes, re-run `--gate` plus the project's own lint/tests.
+
+## Adding a rule the server flags but the local scan misses
+
+When a Sonar server finding does not show up locally: add an ESLint rule to `lib/server-rules.cjs`, enable it as `sonar-server/<name>` in `lib/eslint.mjs`, test it on a throwaway file with `--cwd <tmpdir> <file>`, and list it in the table above.
 
 ## Limitations (say so when relevant)
 
